@@ -1,0 +1,14 @@
+# Use the full Node image based on Debian
+FROM node:20
+
+WORKDIR /app
+
+# Copy your package files and install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy your Node API file
+COPY API_node.js .
+
+# Run the app as root
+CMD ["node", "API_node.js"]

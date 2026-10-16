@@ -1,0 +1,18 @@
+# Stage 1: Install packages to a custom directory
+FROM python:3.11-slim AS builder
+WORKDIR /app
+RUN pip install --no-cache-dir --target=/install flask
+
+# Stage 2: Distroless Python non-root
+# Uses Debian distroless Python3 image
+FROM gcr.io/distroless/python3-debian12:nonroot
+WORKDIR /app
+
+# Copy site packages and code, assigning nonroot ownership
+COPY --from=builder --chown=nonroot:nonroot /install /site-packages
+COPY --chown=nonroot:nonroot python_api.py .
+
+ENV PYTHONPATH=/site-packages
+USER nonroot:nonroot
+EXPOSE 5000
+ENTRYPOINT ["/usr/bin/python3", "python_api.py"]

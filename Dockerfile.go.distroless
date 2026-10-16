@@ -1,0 +1,14 @@
+# Stage 1: Build static binary
+FROM golang:1.23-alpine AS builder
+WORKDIR /app
+COPY API_go.go .
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o server API_go.go
+
+# Stage 2: Distroless static non-root
+FROM gcr.io/distroless/static-debian12:nonroot
+WORKDIR /app
+COPY --from=builder /app/server .
+
+USER nonroot:nonroot
+EXPOSE 8080
+ENTRYPOINT ["/app/server"]
