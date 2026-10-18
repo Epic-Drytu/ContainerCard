@@ -1,0 +1,13 @@
+{
+  "name": "containercard",
+  "version": "1.0.0",
+  "description": "Trivial Express API used as a build target for image hardening comparisons.",
+  "main": "API_node.js",
+  "scripts": {
+    "start": "node API_node.js"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.3.0"
+  }
+}

@@ -1,56 +1,53 @@
 name: Build and Publish Hardened Images
-
 on:
   push:
     branches: [ "main" ]
   workflow_dispatch:
-
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: epic-drytu/containercard
-
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-    
     strategy:
       matrix:
         app: [go, node, python]
-
+        variant: [slim, distroless]
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to the Container registry
+      # TODO: pin to commit SHA for supply-chain hardening
+      - uses: actions/checkout@v4
+      # TODO: pin to commit SHA for supply-chain hardening
+      - uses: docker/setup-qemu-action@v3
+      # TODO: pin to commit SHA for supply-chain hardening
+      - uses: docker/setup-buildx-action@v3
+      - name: Log in to registry
+        # TODO: pin to commit SHA for supply-chain hardening
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata (tags, labels)
+      - name: Extract metadata
         id: meta
+        # TODO: pin to commit SHA for supply-chain hardening
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.app }}-api
-
-      - name: Build and push Distroless image
+      - name: Build and push
+        if: matrix.variant != 'naive'
+        # TODO: pin to commit SHA for supply-chain hardening
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./Dockerfile.${{ matrix.app }}.distroless
+          context: ./${{ matrix.app }}
+          file: ./${{ matrix.app }}/${{ matrix.variant }}.Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.app }}-api:latest
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.app }}-api:${{ matrix.variant }}
+          labels: |
+            ${{ steps.meta.outputs.labels }}
+            org.opencontainers.image.source=https://github.com/Epic-Drytu/ContainerCard
           sbom: true
           provenance: true
