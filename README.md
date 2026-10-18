@@ -42,7 +42,7 @@ are built for local comparison only and are not pushed to the registry.
 
 Scan date: 2026-10-18
 Trivy version: 0.76.0
-Hardware: [FILL IN — e.g. Apple M2, 16 GB RAM]
+Hardware: M4, 16 RAM
 
 ### All images
 
