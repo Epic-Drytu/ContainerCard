@@ -40,6 +40,11 @@ are built for local comparison only and are not pushed to the registry.
 
 ## Results
 
+Latest verification attempt: 2026-10-29 — **not completed**. `bash scripts/scan.sh`
+could not connect to the Docker daemon at
+`~/.docker/run/docker.sock`, so no images were built or scanned and no smoke
+tests ran. The benchmark below remains the snapshot from 2026-10-18.
+
 Scan date: 2026-10-18
 Trivy version: 0.76.0
 Hardware: M4, 16 RAM
@@ -71,31 +76,18 @@ Hardware: M4, 16 RAM
 
 ## What I found
 
-**Go had the most dramatic results.** The naive image is 483.9 MB with 477 HIGH
-and 2 CRITICAL CVEs — almost entirely from the compiler toolchain and full Debian
-layer that get bundled in. The distroless image is 13 MB with 22 HIGH and 0
-CRITICAL. The entire Go toolchain, standard library source, and most of the OS
-disappear because the binary is statically linked (`CGO_ENABLED=0`) and copied
-alone into the runtime image.
+The Go result was the most straightforward — naive at 483 MB dropped to 13 MB
+in distroless because the entire compiler toolchain disappears from the final
+image.
 
-**Python distroless is the counterintuitive result.** Python slim has 44 HIGH
-CVEs and 0 CRITICAL. Python distroless has 61 HIGH and 2 CRITICAL — more than
-slim on both counts, despite being less than half the size. The size drop (200.5
-MB to 95.3 MB) is real: distroless removes the shell and most system packages.
-But the Debian 12 base that distroless uses carries CVEs that the Python slim
-base (also Debian, but with different package pinning) does not. Smaller does
-not automatically mean safer.
+The Python result surprised me. I expected distroless to be safer than slim
+because of its smaller size, but the outcome was the opposite: 61 HIGH and 2
+CRITICAL CVEs versus slim's 44 HIGH and 0 CRITICAL. After looking into it, the
+Debian 12 base that Python distroless uses carries packages with known CVEs that
+the Python slim base does not. Smaller image does not mean fewer vulnerabilities.
 
-<!-- Fill in one or two sentences here about what this told you personally.
-     For example: did this change how you thought about distroless?
-     Was the Python result something you expected or not?
-     Keep it to 2-3 sentences in your own words. -->
-
-**Node distroless introduced a CRITICAL CVE that slim does not have.** Slim and
-distroless are close in size (228.2 MB vs 206.7 MB), but distroless picks up 1
-CRITICAL CVE. The reduction in HIGH CVEs (11 to 6) comes from removing system
-packages, but the CRITICAL comes from a package inside the Node 22 distroless
-base image itself.
+Node followed the same pattern — distroless gained 1 CRITICAL CVE that the slim
+variant does not have, while only saving 21 MB in size.
 
 **Build times were a non-issue.** All nine images built in 1–7 seconds on the
 first run (with layer caching). Python is slower because pip resolves and
