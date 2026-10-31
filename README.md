@@ -47,7 +47,7 @@ tests ran. The benchmark below remains the snapshot from 2026-10-18.
 
 Scan date: 2026-10-18
 Trivy version: 0.76.0
-Hardware: M4, 16 RAM
+Hardware: Apple M4, 16 GB RAM
 
 ### All images
 
